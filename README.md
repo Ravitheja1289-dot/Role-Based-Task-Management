@@ -2,7 +2,15 @@
 
 A production-ready RESTful API built with Node.js, Express, and MongoDB featuring JWT authentication and role-based access control.
 
-## 🎯 Features
+## � Live Demo
+
+**API Base URL**: `https://role-based-task-management.onrender.com`
+
+**Web Interface**: [https://role-based-task-management.onrender.com](https://role-based-task-management.onrender.com)
+
+> **Note**: The first request may take 30-60 seconds as the free tier server spins up after inactivity.
+
+## �🎯 Features
 
 - **Authentication & Authorization**
   - JWT-based authentication
@@ -95,17 +103,147 @@ src/
 
 The API will be available at `http://localhost:5000`
 
-## 📚 API Endpoints
+## � Testing with Postman
+
+### Quick Start Guide
+
+1. **Import Postman Collection**
+   - The `postman_collection.json` file is included in the repository
+   - Open Postman → Click "Import" → Select `postman_collection.json`
+
+2. **Set Base URL Variable**
+   - After importing, create an environment in Postman
+   - Add variable: `base_url` = `https://role-based-task-management.onrender.com`
+   - Or use: `http://localhost:5000` for local testing
+
+3. **Authentication Workflow**
+
+   **Step 1: Register a User**
+   ```
+   POST {{base_url}}/api/auth/register
+   ```
+   Body (JSON):
+   ```json
+   {
+     "username": "admin",
+     "email": "admin@example.com",
+     "password": "password123",
+     "role": "admin"
+   }
+   ```
+
+   **Step 2: Login**
+   ```
+   POST {{base_url}}/api/auth/login
+   ```
+   Body (JSON):
+   ```json
+   {
+     "email": "admin@example.com",
+     "password": "password123"
+   }
+   ```
+   
+   **Response** (copy the token):
+   ```json
+   {
+     "success": true,
+     "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+     "user": { ... }
+   }
+   ```
+
+   **Step 3: Set Authorization Header**
+   - Go to the Authorization tab in Postman
+   - Type: "Bearer Token"
+   - Token: Paste the token from login response
+   - Or manually add header: `Authorization: Bearer <your-token>`
+
+4. **Test Task Endpoints**
+
+   **Create a Task**
+   ```
+   POST {{base_url}}/api/tasks
+   Authorization: Bearer <your-token>
+   ```
+   Body (JSON):
+   ```json
+   {
+     "title": "My First Task",
+     "description": "Testing the API",
+     "priority": "high",
+     "status": "pending"
+   }
+   ```
+
+   **Get All Tasks**
+   ```
+   GET {{base_url}}/api/tasks
+   Authorization: Bearer <your-token>
+   ```
+
+   **Update Task**
+   ```
+   PUT {{base_url}}/api/tasks/<task-id>
+   Authorization: Bearer <your-token>
+   ```
+   Body (JSON):
+   ```json
+   {
+     "status": "completed",
+     "priority": "medium"
+   }
+   ```
+
+   **Delete Task**
+   ```
+   DELETE {{base_url}}/api/tasks/<task-id>
+   Authorization: Bearer <your-token>
+   ```
+
+### Postman Collection Structure
+
+The included collection has folders for:
+- **Auth** - Register, Login, Get Current User
+- **Tasks** - CRUD operations
+- **Admin** - Admin-only endpoints (if implemented)
+
+### Tips for Testing
+
+1. **Save Token as Environment Variable**
+   - In Postman, after login, go to Tests tab
+   - Add: `pm.environment.set("auth_token", pm.response.json().token);`
+   - Use `{{auth_token}}` in Authorization header
+
+2. **Test Different Roles**
+   - Register multiple users with different roles (user, admin)
+   - Test access control by switching tokens
+
+3. **Test Filters and Pagination**
+   ```
+   GET {{base_url}}/api/tasks?status=pending&priority=high&page=1&limit=10
+   ```
+
+4. **Expected Response Codes**
+   - 200: Success (GET, PUT)
+   - 201: Created (POST)
+   - 204: No Content (DELETE)
+   - 400: Bad Request (validation error)
+   - 401: Unauthorized (missing/invalid token)
+   - 403: Forbidden (insufficient permissions)
+   - 404: Not Found
+
+## �📚 API Endpoints
 
 ### Authentication Endpoints
 
 #### Register User
 ```http
-POST /api/auth/register
+POST https://role-based-task-management.onrender.com/api/auth/register
 Content-Type: application/json
 
 {
-  "name": "John Doe",
+  "username": "John Doe",
   "email": "john@example.com",
   "password": "password123",
   "role": "user"  // Optional: "user" or "admin" (default: "user")
@@ -128,7 +266,7 @@ Content-Type: application/json
 
 #### Login
 ```http
-POST /api/auth/login
+POST https://role-based-task-management.onrender.com/api/auth/login
 Content-Type: application/json
 
 {
@@ -153,7 +291,7 @@ Content-Type: application/json
 
 #### Get Current User
 ```http
-GET /api/auth/me
+GET https://role-based-task-management.onrender.com/api/auth/me
 Authorization: Bearer <token>
 ```
 
@@ -163,33 +301,30 @@ Authorization: Bearer <token>
 
 #### Create Task
 ```http
-POST /api/tasks
+POST https://role-based-task-management.onrender.com/api/tasks
 Authorization: Bearer <token>
 Content-Type: application/json
 
 {
   "title": "Complete project documentation",
   "description": "Write comprehensive API documentation",
-  "status": "todo",           // Optional: "todo", "in-progress", "done"
+  "status": "pending",        // Optional: "pending", "in-progress", "completed"
   "priority": "high",         // Optional: "low", "medium", "high"
-  "dueDate": "2026-01-15",   // Optional
-  "assignedTo": "user_id"     // Optional: defaults to creator
+  "dueDate": "2026-01-15"     // Optional
 }
 ```
 
-#### Get All Tasks (with Pagination)
+#### Get All Tasks (with Filtering)
 ```http
-GET /api/tasks?page=1&limit=10&status=todo&priority=high&sortBy=-createdAt
+GET https://role-based-task-management.onrender.com/api/tasks?status=pending&priority=high
 Authorization: Bearer <token>
 ```
 
 **Query Parameters:**
 - `page` (default: 1)
-- `limit` (default: 10)
-- `status` (optional: todo, in-progress, done)
+- `status` (optional: pending, in-progress, completed)
 - `priority` (optional: low, medium, high)
-- `sortBy` (optional: createdAt, -createdAt, title, etc.)
-
+- `search` (optional: search in title and description
 **Response:**
 ```json
 {
@@ -202,28 +337,13 @@ Authorization: Bearer <token>
       "status": "todo",
       "priority": "high",
       "assignedTo": {
-        "_id": "user_id",
-        "name": "John Doe",
-        "email": "john@example.com"
-      },
-      "createdBy": {
-        "_id": "creator_id",
-        "name": "Admin User",
-        "email": "admin@example.com"
-      },
+        "_id": "upending",
+      "priority": "high",
+      "createdBy": "65a1b2c3d4e5f6g7h8i9j0k1",
       "createdAt": "2026-01-07T10:30:00.000Z",
       "updatedAt": "2026-01-07T10:30:00.000Z"
     }
-  ],
-  "pagination": {
-    "page": 1,
-    "limit": 10,
-    "total": 25,
-    "pages": 3
-  }
-}
-```
-
+  ]
 #### Get Single Task
 ```http
 GET /api/tasks/:id
@@ -244,13 +364,13 @@ Content-Type: application/json
 
 #### Delete Task (Soft Delete)
 ```http
-DELETE /api/tasks/:id
+DELEhttps://role-based-task-management.onrender.com/api/tasks/:id
 Authorization: Bearer <token>
 ```
 
-#### Get Task Statistics (Admin Only)
+#### Update Task
 ```http
-GET /api/tasks/stats
+PUT https://role-based-task-management.onrender.com/api/tasks/stats
 Authorization: Bearer <token>
 ```
 
@@ -260,35 +380,10 @@ Authorization: Bearer <token>
   "success": true,
   "data": {
     "byStatus": [
-      { "_id": "todo", "count": 15 },
-      { "_id": "in-progress", "count": 8 },
-      { "_id": "done", "count": 12 }
-    ],
-    "byPriority": [
-      { "_id": "low", "count": 10 },
-      { "_id": "medium", "count": 15 },
-      { "_id": "high", "count": 10 }
-    ]
-  }
-}
-```
-
-## 🔐 Role-Based Access Control
-
-### User Roles
-
-1. **User (Regular User)**
-   - Can see only their assigned tasks
-   - Can create tasks
-   - Can update their own tasks
-   - Can delete tasks they created
-
-2. **Admin**
-   - Can see all tasks
-   - Can create tasks for any user
-   - Can update any task
-   - Can delete any task
-   - Can access task statistics
+      { "_id": "
+```http
+DELETE https://role-based-task-management.onrender.com/api/tasks/:id
+Authorization: Bearer <token>  - Can access task statistics
 
 ## 🧪 Testing with Postman
 
@@ -321,37 +416,21 @@ Authorization: Bearer <token>
 ### Pagination Strategy
 - **Performance**: Limits data transfer
 - **User Experience**: Faster response times
-- **Database**: Reduces load on MongoDB
+- **Databview all tasks
+   - Can create tasks
+   - Can update their own tasks
+   - Can delete their own tasks
 
-### Middleware Order Matters
-```javascript
-router.use(protect);           // 1. Authenticate user
-router.use(authorize('admin')); // 2. Check role
-router.get('/endpoint', handler); // 3. Execute handler
-```
+2. **Admin**
+   - Can view all tasks
+   - Can create tasks
+   - Can update any task
+   - Can delete any task
+   - Full system access
 
-### Service Layer Pattern
-Separates business logic from controllers:
-- Controllers handle HTTP requests/responses
-- Services contain reusable business logic
-- Makes code testable and maintainable
+### Testing Access Control
 
-## 🔄 Request Flow
-
-```
-Client Request
-    ↓
-Express App
-    ↓
-CORS & Body Parser Middleware
-    ↓
-Route Handler
-    ↓
-Auth Middleware (verify JWT)
-    ↓
-Role Middleware (check permissions)
-    ↓
-Controller (handle request)
+Create two accounts with different roles and test the endpoints to see role-based restrictions in action.
     ↓
 Service Layer (business logic)
     ↓
@@ -412,3 +491,23 @@ When presenting this project:
 3. **Scalability**: "The pagination system can handle large datasets efficiently"
 4. **Trade-offs**: "I chose JWT over sessions for horizontal scalability"
 5. **Next Steps**: "I'd add input validation with Zod and comprehensive testing"
+🌐 Using the Web Interface
+
+The application includes a fully functional web interface accessible at:
+**https://role-based-task-management.onrender.com**
+
+### Features:
+- **User Authentication**: Register and login with role selection
+- **Task Dashboard**: View all your tasks in a card-based layout
+- **Task Management**: Create, edit, and delete tasks
+- **Filtering**: Filter by status and priority
+- **Search**: Real-time search across tasks
+- **Responsive Design**: Works on desktop, tablet, and mobile
+
+### Quick Start:
+1. Open the URL in your browser
+2. Register a new account (choose Admin or User role)
+3. Login with your credentials
+4. Start creating and managing tasks!
+
+## 
